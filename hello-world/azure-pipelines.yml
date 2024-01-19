@@ -1,0 +1,160 @@
+resources:
+  repositories:
+    # - repository: my-first-repo
+    #   type: git
+    #   name: hello-world
+    #   branch: master
+    - repository: Sharedrepo
+      type: git
+      name: GenXAzure/Sharedrepo
+      branch: snyk
+
+trigger:
+- main
+
+pool:
+  name: CGvmPool
+
+steps:
+#- checkout: "git://GenxAzure/hello-world@master"
+- checkout: "git://GenxAzure/Sharedrepo@snyk"
+- checkout: self
+
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    codeCoverageToolOption: 'JaCoCo'
+    javaHomeOption: 'Path'
+    jdkDirectory: '/usr/lib/jvm/java-11-openjdk-amd64/'
+    mavenVersionOption: 'Default'
+    mavenOptions: '-Xmx3072m'
+    mavenAuthenticateFeed: false
+    effectivePomSkip: false
+    sonarQubeRunAnalysis: false
+- task: SnykSecurityScan@1
+  inputs:
+    serviceConnectionEndpoint: 'SnykConnection'
+    testType: 'app'
+    targetFile: 'pom.xml'
+    monitorWhen: 'always'
+    failOnIssues: false
+# - task: PowerShell@2
+#   inputs:
+#     targetType: 'inline'
+#     script: |
+#       def geUrl = 'https://dev01.actlabinnovationdev.digitalcloudplatform.com/genxvanillahome'
+#       def snyktoolId = '87'
+#       def codeBaseUrl = 'https://dev.azure.com/CSDNAAzureOffers/GenXAzure/_git/hello-world'
+      
+#       codeBaseUrl = codeBaseUrl.substring(0, 4) + codeBaseUrl.substring(5)
+#       println(codeBaseUrl)
+      
+#       println "stageParams"
+#       println(stageParams)
+#       println "codeBaseUrl or jobname"
+#       println(codeBaseUrl)
+      
+#       def apiToken = "6a07b68a-37ca-4ca3-9b38-1c6eaf52cef4"
+#       def apiUrl = "https://dev.azure.com/CSDNAAzureOffers/GenXAzure/_git/hello-world"
+      
+#       // Make the API request
+#       println "calling snyk apis"
+#       def connection = new URL(apiUrl).openConnection() as HttpURLConnection
+#       connection.setRequestMethod("GET")
+#       #connection.setRequestProperty("Authorization", "token " + apiToken.toString())
+#       response.setRequestProperty("Authorization", "token ${apiToken.toString()}")
+
+      
+#       // Read the response and parse the JSON
+#       #def jsonSlurper = new groovy.json.JsonSlurper()
+#       #def jsonSlurper = new groovy.json.JsonSlurper
+#       def jsonSlurper = new groovy.json.JsonSlurper()
+
+#       #def jsonResponse = jsonSlurper.parse(connection.getInputStream())
+#       def jsonResponse = jsonSlurper.parse(connection.inputStream)
+
+#       def jsonObject = null
+      
+#       // Iterate over the projects and print their details
+#       println "looping through response"
+#       println(jsonResponse.projects)
+#       jsonResponse.projects.each { project ->
+#           println "Name: ${project.name}"
+#           println "ID: ${project.id}"
+#           println "Remote repo URL: ${project.remoteRepoUrl}"
+#           if (project.remoteRepoUrl == codeBaseUrl) {
+#               println "CodeBaseRepo found!"
+#               def issueCounts = project.issueCountsBySeverity
+#               jsonObject = new groovy.json.JsonBuilder(issueCounts).toPrettyString()
+#               println jsonObject
+#           }
+#       }
+      
+#       println("Creating json payload")
+      
+#       // Modify the following line according to your specific payload structure
+#       def output = new groovy.json.JsonBuilder(severityCritical: jsonObject.critical, severityHigh: jsonObject.high, severityMedium: jsonObject.medium, severityLow: jsonObject.low).toPrettyString()
+#       println("final json output: " + output)
+      
+#       def reportObject = new groovy.json.JsonSlurper().parseText(jsonObject)
+#       println("reportObject: " + reportObject)
+      
+#       // Use the 'output' variable in the next steps of your Azure DevOps pipeline
+
+- task: CmdLine@2
+  inputs:
+    script: 'groovy $(Agent.BuildDirectory)/s/Snyk'
+
+# - task: PowerShell@2
+#   inputs:
+#     targetType: 'inline'
+#     script: |
+      
+#       $groovyScriptPath = "$(System.DefaultWorkingDirectory)\snyk-new.groovy"
+#             Write-Host "Running Groovy script: $groovyScriptPath"
+#             groovy $groovyScriptPath
+
+# - task: PowerShell@2
+#   inputs:
+#     targetType: 'inline'
+#     script: 'ls'
+
+# - task: PowerShell@2
+#   displayName: 'Install Groovy'
+#   inputs:
+#     targetType: 'inline'
+#     script: |
+#       # Download Groovy ZIP
+#       $url = 'https://dl.bintray.com/groovy/maven/apache-groovy-binary-3.0.9.zip'
+#       $outputFile = '$(Agent.BuildDirectory)\groovy.zip'
+#       Invoke-WebRequest -Uri $url -OutFile $outputFile
+
+#       # Extract Groovy
+#       $destinationFolder = '$(Agent.BuildDirectory)\groovy'
+#       Expand-Archive -Path $outputFile -DestinationPath $destinationFolder
+
+#       # Set Groovy environment variables
+#       $env:GROOVY_HOME = $destinationFolder
+#       $env:PATH += ";$env:GROOVY_HOME\bin"
+
+# - task: PowerShell@2
+#   inputs:
+#     targetType: 'inline'
+#     script: |
+#       Invoke-WebRequest -Uri 'https://dl.bintray.com/groovy/maven/apache-groovy-binary-3.0.9.zip' -OutFile 'groovy.zip'
+#       Expand-Archive -Path 'groovy.zip' -DestinationPath 'C:\groovy'
+#       $env:GROOVY_HOME = 'C:\groovy\groovy-3.0.9'
+# #       $env:PATH += ";$env:GROOVY_HOME\bin"
+# - task: CmdLine@2
+#   inputs:
+#     script: 'groovy $(Agent.BuildDirectory)/s/helloworld'
+
+# - task: PowerShell@2
+#   inputs:
+#     targetType: 'inline'
+#     script: |
+#         $groovyScriptPath = "$(System.DefaultWorkingDirectory)\snyksecurity.groovy'
+#                    Write-Host "Running Groovy script: $groovyScriptPath"
+#                    groovy $groovyScriptPath

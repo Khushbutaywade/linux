@@ -1,0 +1,7 @@
+FROM openjdk:11
+#ARG ARGENVRMNT="dev01"
+#ENV SPRING_PROFILES_ACTIVE=$ARGENVRMNT
+#ENV SPRING_APPLICATION_JSON="DEFAULT"
+EXPOSE 8084
+#ADD target/spring-boot-0.0.1-SNAPSHOT.jar spring-boot-0.0.1-SNAPSHOT.jar
+#ENTRYPOINT ["java", "-jar", "spring-boot-0.0.1-SNAPSHOT.jar"]
